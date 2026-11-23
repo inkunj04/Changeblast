@@ -34,7 +34,7 @@ dependencies = [
 [project.scripts]
 changeblast = "changeblast.cli:main"
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "pytest>=8.3.0",
     "pytest-cov>=6.0.0",
