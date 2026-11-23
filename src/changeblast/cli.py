@@ -16,7 +16,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from changeblast.adapters.git import GitAdapter
+from changeblast.adapters.git import GitAdapter, validate_path_within_root
 from changeblast.adapters.graph import InMemoryDependencyGraph
 from changeblast.adapters.parsers import JavaParserAdapter, KotlinParserAdapter, SwiftParserAdapter
 from changeblast.adapters.reporters import ReportFormatter
@@ -356,16 +356,25 @@ def handle_analyze_command(args: argparse.Namespace) -> int:
     # Collect source files to parse
     scanned_files: set[Path] = set()
     for cf in changeset.changed_files:
-        cf_path = repo_path / cf.path
-        if cf_path.is_file():
-            scanned_files.add(cf_path)
+        try:
+            cf_path = validate_path_within_root(repo_path, cf.path)
+            if cf_path.is_file():
+                scanned_files.add(cf_path)
+        except SecurityBoundaryViolationError:
+            logger.warning(f"Security: Skipping changed file outside repository root: {cf.path}")
 
     for sroot in profile.source_roots:
         root_dir = repo_path / sroot
         if root_dir.is_dir():
             for p in root_dir.rglob("*"):
                 if p.is_file() and p.suffix in {".kt", ".kts", ".java", ".swift"}:
-                    scanned_files.add(p)
+                    try:
+                        validated_p = validate_path_within_root(repo_path, p)
+                        scanned_files.add(validated_p)
+                    except SecurityBoundaryViolationError:
+                        logger.warning(
+                            f"Security: Skipping symlink or path outside repository root: {p}"
+                        )
 
     for file_path in sorted(scanned_files):
         rel_str = str(file_path.relative_to(repo_path)).replace("\\", "/")
@@ -550,8 +559,11 @@ def handle_diff_command(args: argparse.Namespace) -> int:
 
     graph = InMemoryDependencyGraph()
     for cf in changeset.changed_files:
-        cf_path = repo_path / cf.path
-        if not cf_path.is_file():
+        try:
+            cf_path = validate_path_within_root(repo_path, cf.path)
+            if not cf_path.is_file():
+                continue
+        except SecurityBoundaryViolationError:
             continue
         rel_path = str(cf_path.relative_to(repo_path)).replace("\\", "/")
         graph.add_file(rel_path)
@@ -631,6 +643,10 @@ def handle_parity_command(args: argparse.Namespace) -> int:
             continue
         for p in root_dir.rglob("*"):
             if not p.is_file():
+                continue
+            try:
+                p = validate_path_within_root(repo_path, p)
+            except SecurityBoundaryViolationError:
                 continue
             for parser in parsers:
                 if parser.can_parse(p):

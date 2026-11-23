@@ -8,7 +8,7 @@
   },
   "homepage": "https://github.com/changeblast/changeblast",
   "repository": "https://github.com/changeblast/changeblast.git",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "keywords": [
     "mobile",
     "android",

@@ -25,8 +25,14 @@ HUNK_HEADER_RE = re.compile(r"^@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@(
 
 def validate_path_within_root(repo_root: Path, file_path: str | Path) -> Path:
     """Ensure target path resolves strictly below repository root."""
-    resolved_root = repo_root.resolve()
-    target = (resolved_root / file_path).resolve()
+    if isinstance(file_path, str) and "\0" in file_path:
+        raise SecurityBoundaryViolationError("Null byte injection detected in path.")
+    try:
+        resolved_root = repo_root.resolve()
+        target = (resolved_root / file_path).resolve()
+    except (ValueError, TypeError) as exc:
+        raise SecurityBoundaryViolationError(f"Invalid path representation: {exc}") from exc
+
     if not target.is_relative_to(resolved_root):
         raise SecurityBoundaryViolationError(
             f"Path traversal detected: '{file_path}' escapes repository root '{resolved_root}'."

@@ -25,6 +25,7 @@ class TestClaudeCodePluginStructure:
         assert len(data["description"]) > 20
         assert "author" in data
         assert "license" in data
+        assert data["license"] == "MIT"
         assert "keywords" in data
         assert "android" in data["keywords"]
         assert "ios" in data["keywords"]

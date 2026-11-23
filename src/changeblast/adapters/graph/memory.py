@@ -162,41 +162,48 @@ class InMemoryDependencyGraph(IDependencyGraphAdapter):
             List of normalized cycle paths: e.g. [['A', 'B', 'C', 'A']].
         """
         visited: set[str] = set()
-        rec_stack: dict[str, int] = {}
-        path: list[str] = []
         cycles: list[list[str]] = []
         seen_cycle_fingerprints: set[tuple[str, ...]] = set()
 
-        def dfs(node: str) -> None:
-            rec_stack[node] = len(path)
-            path.append(node)
-            visited.add(node)
+        for start_node in sorted(self._symbols.keys()):
+            if start_node in visited:
+                continue
 
-            for edge in self._outgoing.get(node, []):
-                target = edge.target_symbol_id
-                if target in rec_stack:
-                    # Found a back-edge indicating a directed cycle
-                    start_idx = rec_stack[target]
-                    cycle_nodes = path[start_idx:] + [target]
-                    # Normalize cycle: rotate so minimum element is at index 0
-                    nodes_without_dup = cycle_nodes[:-1]
-                    min_elem = min(nodes_without_dup)
-                    min_idx = nodes_without_dup.index(min_elem)
-                    normalized = tuple(
-                        nodes_without_dup[min_idx:] + nodes_without_dup[:min_idx] + [min_elem]
-                    )
-                    if normalized not in seen_cycle_fingerprints:
-                        seen_cycle_fingerprints.add(normalized)
-                        cycles.append(list(normalized))
-                elif target not in visited:
-                    dfs(target)
+            rec_stack: dict[str, int] = {start_node: 0}
+            path: list[str] = [start_node]
+            visited.add(start_node)
+            stack: list[tuple[str, int]] = [(start_node, 0)]
 
-            path.pop()
-            del rec_stack[node]
+            while stack:
+                curr_node, edge_idx = stack[-1]
+                edges = self._outgoing.get(curr_node, [])
 
-        for node in sorted(self._symbols.keys()):
-            if node not in visited:
-                dfs(node)
+                if edge_idx < len(edges):
+                    stack[-1] = (curr_node, edge_idx + 1)
+                    target = edges[edge_idx].target_symbol_id
+
+                    if target in rec_stack:
+                        # Back-edge detected: cycle exists
+                        start_idx = rec_stack[target]
+                        cycle_nodes = path[start_idx:] + [target]
+                        nodes_without_dup = cycle_nodes[:-1]
+                        min_elem = min(nodes_without_dup)
+                        min_idx = nodes_without_dup.index(min_elem)
+                        normalized = tuple(
+                            nodes_without_dup[min_idx:] + nodes_without_dup[:min_idx] + [min_elem]
+                        )
+                        if normalized not in seen_cycle_fingerprints:
+                            seen_cycle_fingerprints.add(normalized)
+                            cycles.append(list(normalized))
+                    elif target not in visited:
+                        visited.add(target)
+                        rec_stack[target] = len(path)
+                        path.append(target)
+                        stack.append((target, 0))
+                else:
+                    stack.pop()
+                    path.pop()
+                    rec_stack.pop(curr_node, None)
 
         return sorted(cycles, key=lambda c: (len(c), c[0]))
 
