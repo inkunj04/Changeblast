@@ -22,7 +22,14 @@ from changeblast.models.edge import DependencyEdge
 from changeblast.models.evidence import EvidenceReference
 from changeblast.models.finding import AnalysisWarning, ImpactFinding
 from changeblast.models.report import ImpactReport, RiskAssessment, SummaryMetrics
-from changeblast.models.repository import RepositoryProfile, VcsMetadata
+from changeblast.models.repository import (
+    GradleModule,
+    RepositoryProfile,
+    SwiftPackage,
+    VcsMetadata,
+    XcodeProject,
+    XcodeTarget,
+)
 from changeblast.models.symbol import SourceSymbol
 
 __all__ = [
@@ -37,6 +44,7 @@ __all__ = [
     "EdgeKind",
     "EvidenceReference",
     "EvidenceType",
+    "GradleModule",
     "ImpactFinding",
     "ImpactReport",
     "Language",
@@ -48,10 +56,13 @@ __all__ = [
     "SourceLocation",
     "SourceSymbol",
     "SummaryMetrics",
+    "SwiftPackage",
     "SymbolKind",
     "VcsMetadata",
     "Visibility",
     "WarningCategory",
+    "XcodeProject",
+    "XcodeTarget",
     "get_schema_for_model",
     "is_compatible_version",
 ]

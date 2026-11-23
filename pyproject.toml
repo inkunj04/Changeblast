@@ -25,6 +25,10 @@ classifiers = [
 ]
 dependencies = [
     "pydantic>=2.10.0",
+    "tree-sitter>=0.24.0",
+    "tree-sitter-java>=0.23.0",
+    "tree-sitter-kotlin>=1.1.0",
+    "tree-sitter-swift>=0.7.0",
 ]
 
 [project.scripts]
@@ -62,10 +66,12 @@ select = [
 ignore = [
     "E501", # Line too long (handled by formatter)
     "S101", # Use of assert (allowed in tests)
+    "S603", # subprocess call - check for execution of untrusted input
+    "S607", # Starting a process with a partial executable path
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "T201"]
+"tests/*" = ["S101", "T201", "S603", "S607"]
 "src/changeblast/cli.py" = ["T201"] # print is intentional in CLI
 
 [tool.ruff.format]
