@@ -34,7 +34,9 @@ We apply Microsoft's STRIDE threat model specifically to local AST analysis, Git
 - Shell injection is eliminated by using array-based argument vectors exclusively:
   ```python
   # ALLOWED:
-  subprocess.run(["git", "diff", "--unified=0", base_ref, target_ref], check=True, capture_output=True)
+  subprocess.run(
+      ["git", "diff", "--unified=0", base_ref, target_ref], check=True, capture_output=True
+  )
 
   # STRICTLY FORBIDDEN:
   subprocess.run(f"git diff {base_ref} {target_ref}", shell=True)  # NEVER PERMITTED

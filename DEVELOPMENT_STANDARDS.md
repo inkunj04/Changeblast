@@ -96,10 +96,12 @@ Every test must clearly demonstrate **Arrange, Act, Assert**:
 ```python
 def test_blast_radius_calculator_identifies_transitive_callers() -> None:
     # Arrange
-    graph = create_in_memory_call_graph([
-        ("UserService.login", "AuthManager.authenticate"),
-        ("AuthManager.authenticate", "TokenSigner.sign"),
-    ])
+    graph = create_in_memory_call_graph(
+        [
+            ("UserService.login", "AuthManager.authenticate"),
+            ("AuthManager.authenticate", "TokenSigner.sign"),
+        ]
+    )
     calculator = BlastRadiusCalculator()
     modified = [SymbolRef("TokenSigner.sign")]
 

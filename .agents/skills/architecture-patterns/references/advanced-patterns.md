@@ -97,6 +97,7 @@ from domain.entities.product import Product
 from domain.value_objects.money import Money
 from domain.value_objects.discount import Discount
 
+
 class PricingService:
     """
     Domain service: logic that doesn't belong to a single entity.
@@ -128,6 +129,7 @@ When the `Ordering` context must fetch product data from the `Catalog` context, 
 from abc import ABC, abstractmethod
 from ordering.domain.value_objects.product_snapshot import ProductSnapshot
 
+
 class CatalogClientPort(ABC):
     """
     Ordering's view of product data. Uses Ordering's own value object,
@@ -142,9 +144,11 @@ class CatalogClientPort(ABC):
 from dataclasses import dataclass
 from ordering.domain.value_objects.money import Money
 
+
 @dataclass(frozen=True)
 class ProductSnapshot:
     """Ordering's local representation of a product at order time."""
+
     sku: str
     name: str
     unit_price: Money
@@ -156,6 +160,7 @@ import httpx
 from ordering.domain.interfaces.catalog_client import CatalogClientPort
 from ordering.domain.value_objects.product_snapshot import ProductSnapshot
 from ordering.domain.value_objects.money import Money
+
 
 class CatalogHttpClient(CatalogClientPort):
     """
@@ -176,7 +181,7 @@ class CatalogHttpClient(CatalogClientPort):
         # Ordering speaks Money(amount, currency).
         return ProductSnapshot(
             sku=data["sku"],
-            name=data["title"],              # field name differs between contexts
+            name=data["title"],  # field name differs between contexts
             unit_price=Money(
                 amount=data["price_cents"],
                 currency=data["currency_code"],
@@ -241,18 +246,22 @@ from adapters.gateways.stripe_payment_gateway import StripePaymentAdapter
 from use_cases.create_user import CreateUserUseCase
 from infrastructure.config import Settings
 
+
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
 
 async def get_db_pool() -> asyncpg.Pool:
     settings = get_settings()
     return await asyncpg.create_pool(settings.database_url)
 
+
 async def get_create_user_use_case() -> CreateUserUseCase:
     pool = await get_db_pool()
     repo = PostgresUserRepository(pool=pool)
     return CreateUserUseCase(user_repository=repo)
+
 
 # In tests, replace get_create_user_use_case with a version
 # that injects InMemoryUserRepository — no other code changes needed.
@@ -278,17 +287,19 @@ Use these rules when deciding aggregate boundaries:
 # Bad: Customer aggregate holds full Order objects
 class Customer:
     def __init__(self):
-        self._orders: list[Order] = []   # loads all orders every time
+        self._orders: list[Order] = []  # loads all orders every time
+
 
 # Good: Customer holds Order IDs only; Order is its own aggregate
 class Customer:
     def __init__(self):
         self._order_ids: list[str] = []  # lightweight reference
 
+
 class Order:
     def __init__(self, id: str, customer_id: str):
         self.id = id
-        self.customer_id = customer_id   # reference back, not the full object
+        self.customer_id = customer_id  # reference back, not the full object
 ```
 
 ---
@@ -302,9 +313,11 @@ Domain events decouple aggregates that need to react to each other's state chang
 from dataclasses import dataclass, field
 from datetime import datetime
 
+
 @dataclass
 class DomainEvent:
     occurred_at: datetime = field(default_factory=datetime.utcnow)
+
 
 @dataclass
 class OrderSubmittedEvent(DomainEvent):
@@ -317,6 +330,7 @@ class OrderSubmittedEvent(DomainEvent):
 # adapters/event_publisher/postgres_outbox.py
 # Transactional outbox pattern: write events to the same DB transaction as state
 import json
+
 
 class PostgresOutboxPublisher:
     """

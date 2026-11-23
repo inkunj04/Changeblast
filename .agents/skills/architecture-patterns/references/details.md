@@ -42,9 +42,11 @@ app/
 from dataclasses import dataclass
 from datetime import datetime
 
+
 @dataclass
 class User:
     """Core user entity — no framework dependencies."""
+
     id: str
     email: str
     name: str
@@ -62,6 +64,7 @@ class User:
 from abc import ABC, abstractmethod
 from typing import Optional
 from domain.entities.user import User
+
 
 class IUserRepository(ABC):
     """Port: defines contract, no implementation details."""
@@ -87,16 +90,19 @@ import uuid
 from domain.entities.user import User
 from domain.interfaces.user_repository import IUserRepository
 
+
 @dataclass
 class CreateUserRequest:
     email: str
     name: str
+
 
 @dataclass
 class CreateUserResponse:
     user: Optional[User]
     success: bool
     error: Optional[str] = None
+
 
 class CreateUserUseCase:
     """Use case: orchestrates business logic, no HTTP or DB details."""
@@ -125,6 +131,7 @@ from domain.entities.user import User
 from typing import Optional
 import asyncpg
 
+
 class PostgresUserRepository(IUserRepository):
     """Adapter: PostgreSQL implementation of the user port."""
 
@@ -150,7 +157,11 @@ class PostgresUserRepository(IUserRepository):
                 ON CONFLICT (id) DO UPDATE
                 SET email = $2, name = $3, is_active = $5
                 """,
-                user.id, user.email, user.name, user.created_at, user.is_active,
+                user.id,
+                user.email,
+                user.name,
+                user.created_at,
+                user.is_active,
             )
         return user
 
@@ -161,8 +172,11 @@ class PostgresUserRepository(IUserRepository):
 
     def _to_entity(self, row) -> User:
         return User(
-            id=row["id"], email=row["email"], name=row["name"],
-            created_at=row["created_at"], is_active=row["is_active"],
+            id=row["id"],
+            email=row["email"],
+            name=row["name"],
+            created_at=row["created_at"],
+            is_active=row["is_active"],
         )
 
 
@@ -173,9 +187,11 @@ from use_cases.create_user import CreateUserUseCase, CreateUserRequest
 
 router = APIRouter()
 
+
 class CreateUserDTO(BaseModel):
     email: str
     name: str
+
 
 @router.post("/users")
 async def create_user(
@@ -227,9 +243,11 @@ class OrderRepositoryPort(ABC):
     @abstractmethod
     async def save(self, order: Order) -> Order: ...
 
+
 class PaymentGatewayPort(ABC):
     @abstractmethod
     async def charge(self, amount: Money, customer: str) -> PaymentResult: ...
+
 
 class NotificationPort(ABC):
     @abstractmethod
@@ -240,6 +258,7 @@ class NotificationPort(ABC):
 class StripePaymentAdapter(PaymentGatewayPort):
     def __init__(self, api_key: str):
         import stripe
+
         stripe.api_key = api_key
         self._stripe = stripe
 
@@ -265,6 +284,7 @@ class MockPaymentAdapter(PaymentGatewayPort):
 # Value Objects: immutable, validated at construction
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class Email:
     value: str
@@ -273,9 +293,10 @@ class Email:
         if "@" not in self.value or "." not in self.value.split("@")[-1]:
             raise ValueError(f"Invalid email: {self.value}")
 
+
 @dataclass(frozen=True)
 class Money:
-    amount: int   # cents
+    amount: int  # cents
     currency: str
 
     def __post_init__(self):
@@ -331,5 +352,6 @@ class OrderRepository(ABC):
 
     @abstractmethod
     async def save(self, order: Order) -> None: ...
+
     # Implementations persist events via pop_events() after writing state
 ```

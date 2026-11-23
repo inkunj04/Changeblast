@@ -108,15 +108,21 @@ from changeblast.core.domain.models import (
     ImpactGraph,
 )
 
+
 class IGitDiffPort(ABC):
     """Port for extracting diff information from the local repository."""
+
     @abstractmethod
-    def get_diff(self, base_ref: str | None = None, target_ref: str | None = None) -> Sequence[FileDiff]:
+    def get_diff(
+        self, base_ref: str | None = None, target_ref: str | None = None
+    ) -> Sequence[FileDiff]:
         """Extract changed files and affected line ranges."""
         ...
 
+
 class IAstParserPort(ABC):
     """Port for parsing source code into language-agnostic AST nodes."""
+
     @abstractmethod
     def parse_file(self, file_path: str, content: bytes) -> Sequence[Symbol]:
         """Extract symbol definitions from a source file."""
@@ -127,39 +133,40 @@ class IAstParserPort(ABC):
         """Extract call sites, inheritance, and symbol references."""
         ...
 
+
 class ISymbolIndexerPort(ABC):
     """Port for maintaining an in-memory symbol registry across the codebase."""
-    @abstractmethod
-    def index_symbols(self, symbols: Sequence[Symbol]) -> None:
-        ...
 
     @abstractmethod
-    def find_symbol_by_location(self, file_path: str, line: int) -> Symbol | None:
-        ...
+    def index_symbols(self, symbols: Sequence[Symbol]) -> None: ...
 
     @abstractmethod
-    def resolve_symbol(self, query: str, context_file: str) -> Symbol | None:
-        ...
+    def find_symbol_by_location(self, file_path: str, line: int) -> Symbol | None: ...
+
+    @abstractmethod
+    def resolve_symbol(self, query: str, context_file: str) -> Symbol | None: ...
+
 
 class IImpactAnalyzerPort(ABC):
     """Port for building dependency graphs and computing blast radius."""
-    @abstractmethod
-    def build_graph(self, symbols: Sequence[Symbol], edges: Sequence[CallEdge]) -> ImpactGraph:
-        ...
 
     @abstractmethod
-    def compute_impact(self, modified_symbols: Sequence[Symbol], graph: ImpactGraph) -> AnalysisReport:
-        ...
+    def build_graph(self, symbols: Sequence[Symbol], edges: Sequence[CallEdge]) -> ImpactGraph: ...
+
+    @abstractmethod
+    def compute_impact(
+        self, modified_symbols: Sequence[Symbol], graph: ImpactGraph
+    ) -> AnalysisReport: ...
+
 
 class IReportRendererPort(ABC):
     """Port for formatting the analysis report."""
-    @abstractmethod
-    def render_json(self, report: AnalysisReport) -> str:
-        ...
 
     @abstractmethod
-    def render_markdown(self, report: AnalysisReport) -> str:
-        ...
+    def render_json(self, report: AnalysisReport) -> str: ...
+
+    @abstractmethod
+    def render_markdown(self, report: AnalysisReport) -> str: ...
 ```
 
 ---
@@ -220,11 +227,13 @@ from enum import Enum
 from typing import List, Optional, Tuple
 from pydantic import BaseModel, Field, ConfigDict
 
+
 class RiskLevel(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+
 
 class SymbolKind(str, Enum):
     CLASS = "CLASS"
@@ -237,12 +246,14 @@ class SymbolKind(str, Enum):
     VARIABLE = "VARIABLE"
     ANNOTATION = "ANNOTATION"
 
+
 class Visibility(str, Enum):
     PUBLIC = "PUBLIC"
     PROTECTED = "PROTECTED"
     INTERNAL = "INTERNAL"
     PRIVATE = "PRIVATE"
     PACKAGE_PRIVATE = "PACKAGE_PRIVATE"
+
 
 class SourceLocation(BaseModel):
     model_config = ConfigDict(frozen=True)
@@ -251,6 +262,7 @@ class SourceLocation(BaseModel):
     start_column: int
     end_line: int
     end_column: int
+
 
 class SymbolSchema(BaseModel):
     model_config = ConfigDict(frozen=True)
@@ -262,6 +274,7 @@ class SymbolSchema(BaseModel):
     container_id: Optional[str] = None
     annotations: List[str] = Field(default_factory=list)
 
+
 class ImpactedSymbolSchema(BaseModel):
     model_config = ConfigDict(frozen=True)
     symbol: SymbolSchema
@@ -270,12 +283,14 @@ class ImpactedSymbolSchema(BaseModel):
     is_ui_entry_point: bool = False
     is_test_target: bool = False
 
+
 class RiskAssessmentSchema(BaseModel):
     model_config = ConfigDict(frozen=True)
     level: RiskLevel
     score: float = Field(ge=0.0, le=100.0)
     reasons: List[str]
     breaking_change_signals: List[str]
+
 
 class BlastRadiusSummarySchema(BaseModel):
     model_config = ConfigDict(frozen=True)
@@ -286,8 +301,10 @@ class BlastRadiusSummarySchema(BaseModel):
     impacted_ui_components_count: int
     recommended_test_targets_count: int
 
+
 class AnalysisReportSchema(BaseModel):
     """Top-level contract serialized to JSON for Claude Code and external tooling."""
+
     model_config = ConfigDict(frozen=True)
     version: str = "1.0.0"
     target_ref: str
