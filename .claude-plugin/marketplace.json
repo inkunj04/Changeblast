@@ -3,8 +3,8 @@
   "name": "changeblast",
   "description": "Deterministic mobile change-impact intelligence for Android (Kotlin/Java) and iOS (Swift)",
   "owner": {
-    "name": "ChangeBlast Team",
-    "url": "https://github.com/changeblast/changeblast"
+    "name": "inkunj04",
+    "url": "https://github.com/inkunj04/Changeblast"
   },
   "plugins": [
     {
@@ -12,7 +12,7 @@
       "description": "Deterministic mobile change-impact intelligence for Android (Kotlin/Java) and iOS (Swift)",
       "version": "0.1.0",
       "author": {
-        "name": "ChangeBlast Team"
+        "name": "inkunj04"
       },
       "source": "./"
     }

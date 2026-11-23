@@ -47,11 +47,11 @@ The manifest specifies metadata and execution rules:
   "version": "0.1.0",
   "description": "Deterministic mobile change-impact intelligence for Android (Kotlin/Java) and iOS (Swift)",
   "author": {
-    "name": "ChangeBlast Core Team",
-    "url": "https://github.com/changeblast/changeblast"
+    "name": "inkunj04",
+    "url": "https://github.com/inkunj04/Changeblast"
   },
-  "homepage": "https://github.com/changeblast/changeblast",
-  "repository": "https://github.com/changeblast/changeblast.git",
+  "homepage": "https://github.com/inkunj04/Changeblast",
+  "repository": "https://github.com/inkunj04/Changeblast.git",
   "license": "Apache-2.0",
   "keywords": [
     "mobile",

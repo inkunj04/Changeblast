@@ -1,3 +1,9 @@
+[![ChangeBlast CI](https://github.com/inkunj04/Changeblast/actions/workflows/ci.yml/badge.svg)](https://github.com/inkunj04/Changeblast/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](pyproject.toml)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Plugin-purple.svg)](https://claude.ai)
+
+
 # ChangeBlast
 
 **Deterministic Mobile Change-Impact Intelligence for Android and iOS**
@@ -83,14 +89,14 @@ ChangeBlast is distributed as a plugin for **Claude Code**.
 Add the ChangeBlast marketplace catalog and install the plugin:
 
 ```text
-/plugin marketplace add changeblast/changeblast
-/plugin install changeblast@changeblast
+/plugin marketplace add inkunj04/Changeblast
+/plugin install changeblast@inkunj04
 ```
 
 Or install directly in one step if configured in your environment:
 
 ```text
-/plugin install changeblast --marketplace changeblast/changeblast
+/plugin install changeblast --marketplace inkunj04/Changeblast
 ```
 
 ### 2. Local Plugin Development Setup
@@ -107,8 +113,8 @@ The ChangeBlast analysis engine requires **Python 3.11+** and **Git** available 
 
 ```bash
 # Clone the repository
-git clone https://github.com/changeblast/changeblast.git
-cd changeblast
+git clone https://github.com/inkunj04/Changeblast.git
+cd Changeblast
 
 # Create a virtual environment and install dependencies
 python3 -m venv .venv
@@ -189,8 +195,8 @@ ChangeBlast uses modern Python tooling (`uv` or `pip`, `ruff`, `mypy`, `pytest`)
 
 ```bash
 # Clone the repository
-git clone https://github.com/changeblast/changeblast.git
-cd changeblast
+git clone https://github.com/inkunj04/Changeblast.git
+cd Changeblast
 
 # Create and activate virtual environment
 python3 -m venv .venv

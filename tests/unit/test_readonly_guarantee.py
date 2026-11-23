@@ -46,7 +46,7 @@ class TestReadOnlyGuarantee:
             ["git", "-C", str(temp_workspace), "config", "user.name", "Audit"], check=True
         )
         subprocess.run(
-            ["git", "-C", str(temp_workspace), "config", "user.email", "audit@changeblast.org"],
+            ["git", "-C", str(temp_workspace), "config", "user.email", "audit@example.com"],
             check=True,
         )
 

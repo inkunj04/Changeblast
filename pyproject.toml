@@ -10,8 +10,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [
-    { name = "ChangeBlast Core Team", email = "engineering@changeblast.org" }
+    { name = "inkunj04" }
 ]
+urls = { "Homepage" = "https://github.com/inkunj04/Changeblast", "Repository" = "https://github.com/inkunj04/Changeblast" }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

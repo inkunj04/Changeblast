@@ -14,8 +14,8 @@ Thank you for your interest in contributing to ChangeBlast. As an open-source to
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/changeblast/changeblast.git
-cd changeblast
+git clone https://github.com/inkunj04/Changeblast.git
+cd Changeblast
 
 # Create a dedicated virtual environment
 python3 -m venv .venv

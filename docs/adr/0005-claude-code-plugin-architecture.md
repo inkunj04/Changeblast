@@ -14,7 +14,7 @@ The product architecture enforces an absolute boundary between:
 
 ### 1. Plugin Manifest Architecture
 - Created `.claude-plugin/plugin.json` adhering to the official Anthropic plugin specification (kebab-case name `changeblast`, version `0.1.0`, description, author, license, and keywords).
-- Created `.claude-plugin/marketplace.json` enabling one-step marketplace discovery and installation (`/plugin install changeblast --marketplace changeblast/changeblast`).
+- Created `.claude-plugin/marketplace.json` enabling one-step marketplace discovery and installation (`/plugin install changeblast --marketplace inkunj04/Changeblast`).
 - Bundled compliant 512x512 PNG listing icon at `.claude-plugin/icon.png`.
 
 ### 2. Skill Architecture & Progressive Disclosure

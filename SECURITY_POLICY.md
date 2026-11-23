@@ -73,7 +73,7 @@ We apply Microsoft's STRIDE threat model specifically to local AST analysis, Git
 ## 4. Vulnerability Disclosure Policy
 
 If you discover a security vulnerability in ChangeBlast, please report it privately:
-- **Email**: `security@changeblast.org` (or create a private GitHub Security Advisory)
+- **Reporting**: Create a private GitHub Security Advisory at https://github.com/inkunj04/Changeblast/security/advisories/new
 - Please include:
   - Description of the vulnerability.
   - Minimal reproducible example or proof-of-concept repository.

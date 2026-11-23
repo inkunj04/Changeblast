@@ -31,8 +31,8 @@ ChangeBlast operates under verified architectural security guarantees:
 
 If you discover a security vulnerability in ChangeBlast, please report it responsibly:
 
-* **Primary Route**: Open a private advisory report through GitHub's [Private Vulnerability Reporting](https://github.com/changeblast/changeblast/security/advisories/new) on the repository.
-* **Alternative Route**: Email the core engineering team at `engineering@changeblast.org` with the subject line `[SECURITY] ChangeBlast Vulnerability Report`.
+* **Reporting Route**: Open a private advisory report through GitHub's [Private Vulnerability Reporting](https://github.com/inkunj04/Changeblast/security/advisories/new) on the repository.
+* **Alternative Route**: Open a confidential security advisory or reach out via GitHub profile.
 
 Please include:
 * Description of the potential vulnerability and affected component.
@@ -41,5 +41,5 @@ Please include:
 
 ### Response Process
 * **Acknowledgment**: Within 48 hours.
-* **Assessment & Fix**: Security patches will be prepared in private branches and published as a patched release.
+* **Assessment & Fix**: Security patches will be prepared in private and published as a patched release.
 * **Public Disclosure**: Coordinated disclosure after a fix is available.
