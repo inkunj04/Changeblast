@@ -158,3 +158,108 @@ class TestCli:
     def test_cli_invalid_repo_path_returns_error_code(self) -> None:
         exit_code = main(["analyze", "--repo", "/non/existent/path/for/sure"])
         assert exit_code == 2
+
+    def test_cli_doctor_command(
+        self, temp_workspace: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        exit_code = main(["doctor", "--repo", str(temp_workspace), "--format", "json"])
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["status"] == "healthy"
+        assert data["changeblast_version"] == "0.1.0"
+        assert data["tree_sitter_parsers"]["kotlin"] is True
+        assert data["tree_sitter_parsers"]["java"] is True
+        assert data["tree_sitter_parsers"]["swift"] is True
+
+        exit_code_text = main(["doctor", "--repo", str(temp_workspace), "--format", "summary"])
+        assert exit_code_text == 0
+        captured_text = capsys.readouterr()
+        assert "ChangeBlast Engine Health" in captured_text.out
+
+    def test_cli_diff_command(
+        self, temp_workspace: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        import subprocess
+
+        subprocess.run(["git", "-C", str(temp_workspace), "init", "-b", "main"], check=True)
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "config", "user.name", "Test"], check=True
+        )
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "config", "user.email", "test@example.com"],
+            check=True,
+        )
+
+        test_file = temp_workspace / "App.kt"
+        test_file.write_text("class App { fun start() = true }\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(temp_workspace), "add", "."], check=True)
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "commit", "-m", "Initial commit"], check=True
+        )
+
+        test_file.write_text("class App { fun start() = false }\n", encoding="utf-8")
+
+        exit_code = main(["diff", "--repo", str(temp_workspace), "--format", "json"])
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert data["total_files_changed"] == 1
+        assert len(data["modified_symbols"]) == 2
+        mod_names = {s["name"] for s in data["modified_symbols"]}
+        assert "App" in mod_names
+        assert "start" in mod_names
+
+        exit_code_text = main(["diff", "--repo", str(temp_workspace), "--format", "summary"])
+        assert exit_code_text == 0
+        captured_text = capsys.readouterr()
+        assert "ChangeBlast Symbol Diff" in captured_text.out
+
+    def test_cli_parity_command(
+        self, temp_workspace: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        exit_code = main(["parity", "--repo", str(temp_workspace), "--format", "json"])
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert "total_correlations" in data
+        assert "disclaimer" in data
+
+    def test_cli_analyze_symbol_filter(
+        self, temp_workspace: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        import subprocess
+
+        subprocess.run(["git", "-C", str(temp_workspace), "init", "-b", "main"], check=True)
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "config", "user.name", "Test"], check=True
+        )
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "config", "user.email", "test@example.com"],
+            check=True,
+        )
+
+        test_file = temp_workspace / "App.kt"
+        test_file.write_text("class App { fun start() = true }\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(temp_workspace), "add", "."], check=True)
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "commit", "-m", "Initial commit"], check=True
+        )
+
+        test_file.write_text("class App { fun start() = false }\n", encoding="utf-8")
+
+        exit_code = main(
+            [
+                "analyze",
+                "--repo",
+                str(temp_workspace),
+                "--symbol",
+                "NonExistentSymbol",
+                "--format",
+                "json",
+            ]
+        )
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert len(data["findings"]) == 0

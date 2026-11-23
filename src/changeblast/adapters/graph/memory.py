@@ -219,7 +219,15 @@ class InMemoryDependencyGraph(IDependencyGraphAdapter):
     def get_symbols_in_file(self, file_path: str) -> list[SourceSymbol]:
         """Retrieve all symbols declared within a given file."""
         norm_path = file_path.replace("\\", "/")
-        sym_ids = self._file_to_symbols.get(norm_path, set())
+        sym_ids = self._file_to_symbols.get(norm_path)
+        if not sym_ids:
+            # Suffix match fallback between relative and absolute representations
+            for fp, sids in self._file_to_symbols.items():
+                if fp.endswith("/" + norm_path) or norm_path.endswith("/" + fp):
+                    sym_ids = sids
+                    break
+        if not sym_ids:
+            sym_ids = set()
         symbols = [self._symbols[sid] for sid in sym_ids if sid in self._symbols]
         return sorted(symbols, key=lambda s: s.location.start_line)
 
