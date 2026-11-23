@@ -6,11 +6,18 @@ import hashlib
 
 from changeblast.adapters.graph.memory import InMemoryDependencyGraph
 from changeblast.analysis.correlator import SymbolDiffCorrelator
+from changeblast.analysis.mobile import (
+    AndroidIntelligenceAnalyzer,
+    CrossPlatformCorrelator,
+    IOSIntelligenceAnalyzer,
+)
 from changeblast.analysis.risk import RiskEngine
 from changeblast.models.changeset import ChangeSet
 from changeblast.models.common import (
     ConfidenceLevel,
     EvidenceType,
+    Language,
+    Platform,
     RiskLevel,
     WarningCategory,
 )
@@ -20,6 +27,14 @@ from changeblast.models.report import ImpactReport, SummaryMetrics
 from changeblast.models.repository import RepositoryProfile
 from changeblast.models.symbol import SourceSymbol
 
+STATIC_ANALYSIS_LIMITATIONS: list[str] = [
+    "Dynamic dispatch, reflection, and runtime service locators (e.g. dynamic DI) cannot be statically guaranteed without bytecode/runtime execution.",
+    "Dynamic URI route parameter bindings and runtime deep link intent dispatches may not resolve if constructed via string concatenation.",
+    "OS-level process lifecycle and background death scenarios depend on runtime memory pressure and scheduler state.",
+    "Server-driven UI payloads or remote feature flag configurations alter execution paths dynamically outside static source code.",
+    "In-app billing and StoreKit server-to-server webhook verification and receipt validation take place out-of-process.",
+]
+
 
 class ImpactAnalyzer:
     """Coordinates changeset symbol correlation, graph traversal, and report generation."""
@@ -28,9 +43,15 @@ class ImpactAnalyzer:
         self,
         correlator: SymbolDiffCorrelator | None = None,
         risk_engine: RiskEngine | None = None,
+        android_analyzer: AndroidIntelligenceAnalyzer | None = None,
+        ios_analyzer: IOSIntelligenceAnalyzer | None = None,
+        cross_platform_correlator: CrossPlatformCorrelator | None = None,
     ) -> None:
         self.correlator = correlator or SymbolDiffCorrelator()
         self.risk_engine = risk_engine or RiskEngine()
+        self.android_analyzer = android_analyzer or AndroidIntelligenceAnalyzer()
+        self.ios_analyzer = ios_analyzer or IOSIntelligenceAnalyzer()
+        self.cross_platform_correlator = cross_platform_correlator or CrossPlatformCorrelator()
 
     def analyze(
         self,
@@ -139,19 +160,41 @@ class ImpactAnalyzer:
             findings_by_target.values(),
             key=lambda f: (f.depth, f.target_symbol.id),
         )
+
+        # 3. Enrich findings with mobile engineering intelligence
+        enriched_findings: list[ImpactFinding] = []
+        for f in all_findings:
+            if f.target_symbol.language in {Language.KOTLIN, Language.JAVA}:
+                enriched_findings.append(self.android_analyzer.enrich_finding(f))
+            elif f.target_symbol.language == Language.SWIFT:
+                enriched_findings.append(self.ios_analyzer.enrich_finding(f))
+            else:
+                enriched_findings.append(f)
+
+        all_findings = enriched_findings
         impacted_symbol_ids = {f.target_symbol.id for f in all_findings}
 
-        # 3. Identify all affected modules
+        # 4. Cross-platform feature correlations
+        android_findings = [f for f in all_findings if f.platform == Platform.ANDROID]
+        ios_findings = [f for f in all_findings if f.platform == Platform.IOS]
+        cross_platform_correlations = self.cross_platform_correlator.correlate(
+            android_findings, ios_findings
+        )
+
+        # 5. Identify all affected modules
         affected_modules_set: set[str] = set()
         for f in all_findings:
             affected_modules_set.update(f.affected_modules)
         affected_modules = sorted(list(affected_modules_set))
 
-        # 4. Related tests and recommendations
+        # 6. Related tests and recommendations
         related_test_symbols = graph.get_related_tests(impacted_symbol_ids)
-        suggested_tests = sorted(list({ts.location.file_path for ts in related_test_symbols}))
+        suggested_tests_set = {ts.location.file_path for ts in related_test_symbols}
+        for f in all_findings:
+            suggested_tests_set.update(f.suggested_tests)
+        suggested_tests = sorted(list(suggested_tests_set))
 
-        # 5. Missing test coverage detection
+        # 7. Missing test coverage detection
         missing_coverage = graph.get_missing_test_coverage(impacted_symbol_ids)
         if missing_coverage:
             warnings.append(
@@ -163,7 +206,7 @@ class ImpactAnalyzer:
                 )
             )
 
-        # 6. Cycle detection in affected subgraph
+        # 8. Cycle detection in affected subgraph
         cycles = graph.detect_cycles()
         affected_cycles = [c for c in cycles if any(sid in impacted_symbol_ids for sid in c)]
         for c in affected_cycles:
@@ -177,7 +220,7 @@ class ImpactAnalyzer:
                 )
             )
 
-        # 7. Evaluate overall risk
+        # 9. Evaluate overall risk
         overall_risk = self.risk_engine.evaluate(
             findings=all_findings,
             affected_modules=affected_modules,
@@ -185,7 +228,7 @@ class ImpactAnalyzer:
             is_monorepo=profile.is_monorepo,
         )
 
-        # 8. Assemble summary metrics
+        # 10. Assemble summary metrics
         direct_count = sum(1 for f in all_findings if f.depth == 0)
         direct_dependents_count = sum(1 for f in all_findings if f.depth == 1)
         transitive_dependents_count = sum(1 for f in all_findings if f.depth >= 2)
@@ -216,6 +259,8 @@ class ImpactAnalyzer:
             suggested_tests=suggested_tests,
             affected_modules=affected_modules,
             missing_test_coverage=missing_coverage,
+            cross_platform_correlations=cross_platform_correlations,
+            static_analysis_limitations=STATIC_ANALYSIS_LIMITATIONS,
         )
 
     # ----------------- Helper Heuristics -----------------

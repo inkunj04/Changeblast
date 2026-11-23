@@ -10,6 +10,7 @@ from changeblast.models.common import (
     EvidenceType,
     Language,
     LineRange,
+    MobileDomain,
     Platform,
     RiskLevel,
     SourceLocation,
@@ -21,7 +22,7 @@ from changeblast.models.common import (
 )
 from changeblast.models.edge import DependencyEdge
 from changeblast.models.evidence import EvidenceReference
-from changeblast.models.finding import AnalysisWarning, ImpactFinding
+from changeblast.models.finding import AnalysisWarning, CrossPlatformCorrelation, ImpactFinding
 from changeblast.models.report import ImpactReport, RiskAssessment, SummaryMetrics
 from changeblast.models.repository import (
     GradleModule,
@@ -41,6 +42,7 @@ __all__ = [
     "ChangeType",
     "ChangedFile",
     "ConfidenceLevel",
+    "CrossPlatformCorrelation",
     "DependencyEdge",
     "DiffHunk",
     "EdgeKind",
@@ -51,6 +53,7 @@ __all__ = [
     "ImpactReport",
     "Language",
     "LineRange",
+    "MobileDomain",
     "Platform",
     "RepositoryProfile",
     "RiskAssessment",

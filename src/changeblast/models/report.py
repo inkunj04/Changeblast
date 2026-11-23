@@ -8,7 +8,7 @@ from pydantic import Field
 
 from changeblast.models.changeset import ChangeSet
 from changeblast.models.common import BaseSchemaModel, ConfidenceLevel, RiskLevel
-from changeblast.models.finding import AnalysisWarning, ImpactFinding
+from changeblast.models.finding import AnalysisWarning, CrossPlatformCorrelation, ImpactFinding
 from changeblast.models.repository import RepositoryProfile
 
 
@@ -102,4 +102,12 @@ class ImpactReport(BaseSchemaModel):
     missing_test_coverage: list[str] = Field(
         default_factory=list,
         description="Impacted symbols or components lacking test coverage.",
+    )
+    cross_platform_correlations: list[CrossPlatformCorrelation] = Field(
+        default_factory=list,
+        description="Evidence-backed correspondences between Android and iOS components.",
+    )
+    static_analysis_limitations: list[str] = Field(
+        default_factory=list,
+        description="Explicit disclosures regarding static analysis boundaries.",
     )

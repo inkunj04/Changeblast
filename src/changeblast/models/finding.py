@@ -7,11 +7,35 @@ from pydantic import Field
 from changeblast.models.common import (
     BaseSchemaModel,
     ConfidenceLevel,
+    MobileDomain,
+    Platform,
     RiskLevel,
     WarningCategory,
 )
 from changeblast.models.evidence import EvidenceReference
 from changeblast.models.symbol import SourceSymbol
+
+
+class CrossPlatformCorrelation(BaseSchemaModel):
+    """Evidence-backed relationship between corresponding Android and iOS components."""
+
+    feature_name: str = Field(description="Name of the correlated feature or domain.")
+    android_symbol_id: str = Field(description="Associated Android symbol ID.")
+    ios_symbol_id: str = Field(description="Associated iOS symbol ID.")
+    correlation_type: str = Field(
+        description="Basis of correlation: 'api_contract', 'feature_mapping', 'screen_flow', 'shared_behavior'."
+    )
+    evidence: list[EvidenceReference] = Field(
+        default_factory=list,
+        description="Verifiable evidence linking components across platforms.",
+    )
+    confidence: ConfidenceLevel = Field(
+        default=ConfidenceLevel.STRONG_INFERENCE,
+        description="Confidence rating of the cross-platform correspondence.",
+    )
+    notes: str = Field(
+        description="Observations and explicit behavioral divergence disclosure.",
+    )
 
 
 class AnalysisWarning(BaseSchemaModel):
@@ -79,4 +103,16 @@ class ImpactFinding(BaseSchemaModel):
     related_features: list[str] = Field(
         default_factory=list,
         description="Identified feature domains related to this finding.",
+    )
+    platform: Platform = Field(
+        default=Platform.ANDROID,
+        description="Mobile platform for this finding (android, ios, cross_platform).",
+    )
+    mobile_domain: MobileDomain = Field(
+        default=MobileDomain.GENERAL,
+        description="Mobile architectural subdomain involved.",
+    )
+    potential_consequence: str | None = Field(
+        default=None,
+        description="Concrete runtime failure mode or production consequence if broken.",
     )

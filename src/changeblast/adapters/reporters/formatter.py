@@ -116,13 +116,48 @@ class ReportFormatter(IReportFormatterAdapter):
             lines.append("_No automated tests identified matching affected components._")
         lines.append("")
 
-        # 9. Warnings & Limitations
+        # 9. Mobile Engineering Intelligence Details
+        mobile_findings = [f for f in report.findings if f.potential_consequence]
+        if mobile_findings:
+            lines.append("## 📱 Mobile Engineering Intelligence")
+            lines.append("")
+            lines.append("| Platform | Component | Domain | Severity | Potential Consequence |")
+            lines.append("| :--- | :--- | :--- | :---: | :--- |")
+            for mf in mobile_findings:
+                lines.append(
+                    f"| `{mf.platform.upper()}` | `{mf.target_symbol.name}` | `{mf.mobile_domain.upper()}` | `{mf.severity.upper()}` | {mf.potential_consequence} |"
+                )
+            lines.append("")
+
+        # 10. Cross-Platform Correlated Features
+        if report.cross_platform_correlations:
+            lines.append("## 🔄 Cross-Platform Feature Correlations")
+            lines.append("")
+            lines.append("| Feature | Android Component | iOS Component | Basis | Confidence |")
+            lines.append("| :--- | :--- | :--- | :--- | :---: |")
+            for c in report.cross_platform_correlations:
+                lines.append(
+                    f"| **{c.feature_name}** | `{c.android_symbol_id.split('//')[-1]}` | `{c.ios_symbol_id.split('//')[-1]}` | `{c.correlation_type}` | `{c.confidence}` |"
+                )
+            lines.append("")
+            lines.append("> **Note**: " + report.cross_platform_correlations[0].notes)
+            lines.append("")
+
+        # 11. Warnings & Limitations
         if report.warnings:
-            lines.append("## 🔍 Analysis Warnings & Limitations")
+            lines.append("## 🔍 Analysis Warnings")
             lines.append("")
             for w in report.warnings:
                 remediation = f" *(Remediation: {w.remediation})*" if w.remediation else ""
                 lines.append(f"- **[{w.category.upper()}]** {w.message}{remediation}")
+            lines.append("")
+
+        # 12. Static Analysis Limitations
+        if report.static_analysis_limitations:
+            lines.append("## ⚖️ Static Analysis Disclosures & Limitations")
+            lines.append("")
+            for lim in report.static_analysis_limitations:
+                lines.append(f"- {lim}")
             lines.append("")
 
         return "\n".join(lines)

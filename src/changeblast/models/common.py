@@ -15,6 +15,7 @@ class Platform(StrEnum):
 
     ANDROID = "android"
     IOS = "ios"
+    CROSS_PLATFORM = "cross_platform"
 
 
 class Language(StrEnum):
@@ -80,6 +81,26 @@ class EvidenceType(StrEnum):
     IMPORT_STATEMENT = "import_statement"
     UI_NAVIGATION = "ui_navigation"
     TEST_ASSERTION = "test_assertion"
+    API_CONTRACT = "api_contract"
+    FEATURE_MAPPING = "feature_mapping"
+    MANIFEST_ENTRY = "manifest_entry"
+
+
+class MobileDomain(StrEnum):
+    """Mobile engineering architectural subdomains."""
+
+    LIFECYCLE = "lifecycle"
+    STATE_RECOMPOSITION = "state_recomposition"
+    NAVIGATION_DEEPLINK = "navigation_deeplink"
+    PERMISSIONS = "permissions"
+    MANIFEST_CONFIGURATION = "manifest_configuration"
+    BACKGROUND_WORK = "background_work"
+    PERSISTENCE = "persistence"
+    DEPENDENCY_INJECTION = "dependency_injection"
+    NETWORKING_API = "networking_api"
+    BILLING_SUBSCRIPTIONS = "billing_subscriptions"
+    CROSS_PLATFORM = "cross_platform"
+    GENERAL = "general"
 
 
 class RiskLevel(StrEnum):

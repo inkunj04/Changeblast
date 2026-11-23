@@ -118,6 +118,9 @@ def make_dummy_report() -> ImpactReport:
         suggested_tests=["app/src/test/MainActivityTest.kt"],
         affected_modules=[":app"],
         missing_test_coverage=["kt://MainActivity"],
+        static_analysis_limitations=[
+            "Reflection and dynamic dispatch cannot be fully statically resolved."
+        ],
     )
 
 
@@ -152,7 +155,8 @@ class TestReportFormatter:
         assert "- `:app`" in md
         assert "## Recommended Regression Tests" in md
         assert "`app/src/test/MainActivityTest.kt`" in md
-        assert "## 🔍 Analysis Warnings & Limitations" in md
+        assert "## 🔍 Analysis Warnings" in md
+        assert "## ⚖️ Static Analysis Disclosures & Limitations" in md
 
     def test_format_summary_concise(self) -> None:
         formatter = ReportFormatter()
