@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "skills": {
+    "architecture-patterns": {
+      "source": "wshobson/agents",
+      "commit": "51b9ae3ac68d9c236549a9b57f5dca7e6c0c168c",
+      "sourceType": "github",
+      "skillPath": "plugins/backend-development/skills/architecture-patterns/SKILL.md",
+      "computedHash": "bfd02e3b52c08838d3a93ac17def96318a41a00f77798f162bfb78669d38e713"
+    },
+    "git-workflow-and-versioning": {
+      "source": "addyosmani/agent-skills",
+      "commit": "8c99fa36d90068c82d547f7c12a9d67a3e95f4ee",
+      "sourceType": "github",
+      "skillPath": "skills/git-workflow-and-versioning/SKILL.md",
+      "computedHash": "860b88bf82d823eaed15b9b9fa9ce4273f94c7bdcf3aeaa3e6649eb578763d4b"
+    },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "commit": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/improve-codebase-architecture/SKILL.md",
+      "computedHash": "f0820b18426a7d9a6c823a890988ba0ac70bf0fd596d30d7ef07c88558728c23"
+    },
+    "modern-python": {
+      "source": "trailofbits/skills",
+      "commit": "149d7b21f4067765b82e67029730b42d228ef4b4",
+      "sourceType": "github",
+      "skillPath": "plugins/modern-python/skills/modern-python/SKILL.md",
+      "computedHash": "6f78e1948cc291dfc71672a87f83a02de3cec01545ed289312ce432d129ec00b"
+    },
+    "python-testing-patterns": {
+      "source": "wshobson/agents",
+      "commit": "51b9ae3ac68d9c236549a9b57f5dca7e6c0c168c",
+      "sourceType": "github",
+      "skillPath": "plugins/python-development/skills/python-testing-patterns/SKILL.md",
+      "computedHash": "8113c05a831d4872c9294b0df26a335c09af423ee2e23d8b9b6817b300d96796"
+    },
+    "security-and-hardening": {
+      "source": "addyosmani/agent-skills",
+      "commit": "8c99fa36d90068c82d547f7c12a9d67a3e95f4ee",
+      "sourceType": "github",
+      "skillPath": "skills/security-and-hardening/SKILL.md",
+      "computedHash": "9bfc78e1ee2e23f3d226f610d8ed8e0cf6fb4f7e90a44db0a41b636735a24767"
+    }
+  }
+}
