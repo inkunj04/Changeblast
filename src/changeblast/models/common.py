@@ -91,6 +91,15 @@ class RiskLevel(StrEnum):
     CRITICAL = "critical"
 
 
+class ConfidenceLevel(StrEnum):
+    """Confidence classification for relationships and impact findings."""
+
+    VERIFIED = "verified"
+    STRONG_INFERENCE = "strong_inference"
+    POSSIBLE = "possible"
+    UNKNOWN = "unknown"
+
+
 class WarningCategory(StrEnum):
     """Non-fatal condition categories encountered during analysis."""
 
@@ -101,6 +110,8 @@ class WarningCategory(StrEnum):
     FILE_READ_ERROR = "file_read_error"
     MAX_DEPTH_EXCEEDED = "max_depth_exceeded"
     UNSUPPORTED_LANGUAGE = "unsupported_language"
+    MISSING_TEST_COVERAGE = "missing_test_coverage"
+    DELETED_SYMBOL_WITH_DEPENDENTS = "deleted_symbol_with_dependents"
 
 
 class BaseSchemaModel(BaseModel):

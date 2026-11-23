@@ -16,7 +16,10 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from changeblast.adapters.git import GitAdapter
+from changeblast.adapters.graph import InMemoryDependencyGraph
 from changeblast.adapters.parsers import JavaParserAdapter, KotlinParserAdapter, SwiftParserAdapter
+from changeblast.adapters.reporters import ReportFormatter
+from changeblast.analysis import ImpactAnalyzer
 from changeblast.discovery import discover_repository
 from changeblast.exceptions import (
     ChangeBlastError,
@@ -239,66 +242,91 @@ def handle_profile_command(args: argparse.Namespace) -> int:
 
 
 def handle_analyze_command(args: argparse.Namespace) -> int:
-    """Execute Git changeset extraction and source parsing."""
+    """Execute Git changeset extraction, graph construction, and impact analysis."""
     logger = get_logger("cli")
     repo_path = args.repo.resolve()
 
     if not repo_path.exists() or not repo_path.is_dir():
         raise CliArgumentError(f"Target repository path is invalid: {repo_path}")
 
+    # 1. Discover repository topology
+    profile = discover_repository(repo_path)
+
+    # 2. Extract Git changeset
     git_adapter = GitAdapter(repo_path)
     changeset = git_adapter.get_changeset(
         base_ref=args.base_ref,
         target_ref=args.target_ref,
     )
 
-    # Initialize parsers
-    parsers = [KotlinParserAdapter(), JavaParserAdapter(), SwiftParserAdapter()]
-    parsed_symbols: list[SourceSymbol] = []
-    parsed_edges: list[DependencyEdge] = []
+    # 3. Construct in-memory dependency graph
+    graph = InMemoryDependencyGraph()
+    for gm in profile.gradle_modules:
+        graph.add_module(gm.name, gm.source_roots)
+    for xp in profile.xcode_projects:
+        graph.add_module(xp.name, [xp.path])
+    for sp in profile.swift_packages:
+        graph.add_module(sp.name, [sp.path])
 
+    parsers = [KotlinParserAdapter(), JavaParserAdapter(), SwiftParserAdapter()]
+
+    # Collect source files to parse
+    scanned_files: set[Path] = set()
     for cf in changeset.changed_files:
         cf_path = repo_path / cf.path
-        if not cf_path.exists() or not cf_path.is_file():
-            continue
+        if cf_path.is_file():
+            scanned_files.add(cf_path)
+
+    for sroot in profile.source_roots:
+        root_dir = repo_path / sroot
+        if root_dir.is_dir():
+            for p in root_dir.rglob("*"):
+                if p.is_file() and p.suffix in {".kt", ".kts", ".java", ".swift"}:
+                    scanned_files.add(p)
+
+    for file_path in sorted(scanned_files):
+        rel_str = str(file_path.relative_to(repo_path)).replace("\\", "/")
+        graph.add_file(rel_str)
         for p in parsers:
-            if p.can_parse(cf_path):
-                content = cf_path.read_bytes()
-                syms = p.parse_symbols(cf_path, content)
-                edges = p.extract_dependencies(cf_path, content)
-                parsed_symbols.extend(syms)
-                parsed_edges.extend(edges)
+            if p.can_parse(file_path):
+                content = file_path.read_bytes()
+                syms = p.parse_symbols(file_path, content)
+                for sym in syms:
+                    graph.add_symbol(sym)
+                edges = p.extract_dependencies(file_path, content)
+                for edge in edges:
+                    graph.add_edge(edge)
                 break
 
     logger.info(
-        f"Analyzed {len(changeset.changed_files)} changed files; "
-        f"extracted {len(parsed_symbols)} symbols and {len(parsed_edges)} edges."
+        f"Built dependency graph with {graph.node_count} nodes and {graph.edge_count} edges."
     )
 
+    # 4. Perform impact analysis
+    analyzer = ImpactAnalyzer()
+    report = analyzer.analyze(
+        profile=profile,
+        changeset=changeset,
+        graph=graph,
+        max_depth=args.max_depth,
+    )
+
+    # 5. Format and deliver report
+    formatter = ReportFormatter()
     if args.output_format == "json":
-        res = {
-            "schema_version": CURRENT_SCHEMA_VERSION,
-            "changeset": changeset.model_dump(),
-            "extracted_symbols_count": len(parsed_symbols),
-            "extracted_edges_count": len(parsed_edges),
-            "symbols": [s.model_dump() for s in parsed_symbols],
-        }
-        formatted = json.dumps(res, indent=2)
-        if args.output:
-            args.output.resolve().write_text(formatted, encoding="utf-8")
-        else:
-            print(formatted)
+        output_text = formatter.format_json(report)
+    elif args.output_format == "markdown":
+        output_text = formatter.format_markdown(report)
     else:
-        print(f"ChangeBlast Changeset Analysis: {repo_path}")
-        print(
-            f"  Files Changed: {len(changeset.changed_files)} (+{changeset.total_additions}, -{changeset.total_deletions})"
-        )
-        print(f"  Extracted Symbols: {len(parsed_symbols)}")
-        print(f"  Extracted Dependency Edges: {len(parsed_edges)}")
-        for cf in changeset.changed_files:
-            print(
-                f"    [{cf.change_type.value.upper()}] {cf.path} ({len(cf.changed_line_ranges)} changed ranges)"
-            )
+        output_text = formatter.format_summary(report)
+
+    if args.output:
+        dest_path = args.output.resolve()
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        dest_path.write_text(output_text, encoding="utf-8")
+        logger.info(f"Impact report written to {dest_path}")
+    else:
+        print(output_text)
 
     return 0
 

@@ -45,8 +45,32 @@ class IDependencyGraphAdapter(ABC):
         ...
 
     @abstractmethod
+    def get_direct_dependencies(self, symbol_id: str) -> list[SourceSymbol]:
+        """Find immediate downstream callees or dependencies required by given symbol."""
+        ...
+
+    @abstractmethod
+    def get_transitive_dependencies(
+        self,
+        symbol_id: str,
+        max_depth: int = 10,
+    ) -> list[tuple[SourceSymbol, int, list[str]]]:
+        """Traverse downstream dependencies up to max_depth."""
+        ...
+
+    @abstractmethod
     def detect_cycles(self) -> list[list[str]]:
         """Detect any circular dependency loops in the graph."""
+        ...
+
+    @abstractmethod
+    def get_symbols_in_file(self, file_path: str) -> list[SourceSymbol]:
+        """Retrieve all symbols declared within a given file."""
+        ...
+
+    @abstractmethod
+    def get_symbols_in_module(self, module_name: str) -> list[SourceSymbol]:
+        """Retrieve all symbols declared within a given module."""
         ...
 
     @property

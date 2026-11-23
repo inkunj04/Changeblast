@@ -4,7 +4,13 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from changeblast.models.common import BaseSchemaModel, EdgeKind, SourceLocation
+from changeblast.models.common import (
+    BaseSchemaModel,
+    ConfidenceLevel,
+    EdgeKind,
+    SourceLocation,
+)
+from changeblast.models.evidence import EvidenceReference
 
 
 class DependencyEdge(BaseSchemaModel):
@@ -25,4 +31,12 @@ class DependencyEdge(BaseSchemaModel):
         default=1.0,
         ge=0.0,
         description="Traversable edge weight for graph prioritization.",
+    )
+    confidence: ConfidenceLevel = Field(
+        default=ConfidenceLevel.VERIFIED,
+        description="Confidence level of this relationship.",
+    )
+    evidence: list[EvidenceReference] = Field(
+        default_factory=list,
+        description="Verifiable evidence references validating this edge.",
     )

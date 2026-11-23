@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from changeblast.models.common import BaseSchemaModel, WarningCategory
+from changeblast.models.common import (
+    BaseSchemaModel,
+    ConfidenceLevel,
+    RiskLevel,
+    WarningCategory,
+)
 from changeblast.models.evidence import EvidenceReference
 from changeblast.models.symbol import SourceSymbol
 
@@ -58,4 +63,20 @@ class ImpactFinding(BaseSchemaModel):
     suggested_tests: list[str] = Field(
         default_factory=list,
         description="List of test symbol IDs or test file paths recommended for verification.",
+    )
+    severity: RiskLevel = Field(
+        default=RiskLevel.LOW,
+        description="Assessed severity level of the impact on this component.",
+    )
+    confidence: ConfidenceLevel = Field(
+        default=ConfidenceLevel.VERIFIED,
+        description="Assessed confidence level of this impact finding.",
+    )
+    affected_modules: list[str] = Field(
+        default_factory=list,
+        description="Modules containing this impacted component.",
+    )
+    related_features: list[str] = Field(
+        default_factory=list,
+        description="Identified feature domains related to this finding.",
     )

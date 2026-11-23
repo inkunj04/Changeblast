@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from pydantic import Field
 
 from changeblast.models.changeset import ChangeSet
-from changeblast.models.common import BaseSchemaModel, RiskLevel
+from changeblast.models.common import BaseSchemaModel, ConfidenceLevel, RiskLevel
 from changeblast.models.finding import AnalysisWarning, ImpactFinding
 from changeblast.models.repository import RepositoryProfile
 
@@ -36,12 +36,26 @@ class SummaryMetrics(BaseSchemaModel):
         ge=0,
         description="Number of distinct test targets recommended.",
     )
+    affected_modules_count: int = Field(
+        default=0,
+        ge=0,
+        description="Number of distinct modules affected.",
+    )
+    missing_test_coverage_count: int = Field(
+        default=0,
+        ge=0,
+        description="Number of impacted symbols lacking test coverage.",
+    )
 
 
 class RiskAssessment(BaseSchemaModel):
     """Overall deterministic risk score and rationale."""
 
     level: RiskLevel = Field(description="Categorical risk rating (low, medium, high, critical).")
+    confidence: ConfidenceLevel = Field(
+        default=ConfidenceLevel.VERIFIED,
+        description="Overall confidence rating of the assessment.",
+    )
     score: float = Field(
         ge=0.0,
         le=100.0,
@@ -80,4 +94,12 @@ class ImpactReport(BaseSchemaModel):
     suggested_tests: list[str] = Field(
         default_factory=list,
         description="Deduplicated list of recommended test targets to run.",
+    )
+    affected_modules: list[str] = Field(
+        default_factory=list,
+        description="Distinct modules affected by the changes.",
+    )
+    missing_test_coverage: list[str] = Field(
+        default_factory=list,
+        description="Impacted symbols or components lacking test coverage.",
     )

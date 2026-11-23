@@ -84,7 +84,7 @@ class TestCli:
         exit_code = main(["analyze", "--repo", str(temp_workspace)])
         assert exit_code == 0
         captured = capsys.readouterr()
-        assert "ChangeBlast Changeset Analysis" in captured.out
+        assert "ChangeBlast Analysis" in captured.out
 
     def test_cli_profile_text_format(
         self, temp_workspace: Path, capsys: pytest.CaptureFixture[str]
@@ -125,8 +125,35 @@ class TestCli:
         captured = capsys.readouterr()
         data = json.loads(captured.out)
         assert data["schema_version"] == CURRENT_SCHEMA_VERSION
-        assert data["extracted_symbols_count"] >= 1
+        assert "overall_risk" in data
+        assert "summary" in data
         assert len(data["changeset"]["changed_files"]) == 1
+
+    def test_cli_analyze_markdown_format(
+        self, temp_workspace: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        import subprocess
+
+        subprocess.run(["git", "-C", str(temp_workspace), "init", "-b", "main"], check=True)
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "config", "user.name", "Test"], check=True
+        )
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "config", "user.email", "test@example.com"],
+            check=True,
+        )
+
+        test_file = temp_workspace / "App.kt"
+        test_file.write_text("class App { fun start() = true }\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(temp_workspace), "add", "."], check=True)
+        subprocess.run(
+            ["git", "-C", str(temp_workspace), "commit", "-m", "Initial commit"], check=True
+        )
+
+        exit_code = main(["analyze", "--repo", str(temp_workspace), "--format", "markdown"])
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "ChangeBlast Impact Report" in captured.out
 
     def test_cli_invalid_repo_path_returns_error_code(self) -> None:
         exit_code = main(["analyze", "--repo", "/non/existent/path/for/sure"])
